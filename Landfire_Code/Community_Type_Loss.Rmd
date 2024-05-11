@@ -1,0 +1,86 @@
+---
+title: "LandFire_Table2"
+author: "Jade Haumann"
+date: "2024-04-30"
+output: html_document
+---
+
+```{r setup}
+
+LandFire <- read.csv("C:/Users/hauma/OneDrive/Documents/R_Class_24/MyFinalProject/Landfire_Data/Landfire_Table_Loss.csv")
+
+
+install.packages("ggplot2")
+
+library(ggplot2)
+library(dplyr)
+
+
+```
+
+
+```{r 2 Barplot}
+
+AVG_LandFire <- LandFire %>%
+  group_by(Community_Type) %>%
+  summarise(Average_Percent_Change = mean(Percent_Change))
+
+
+ggplot(AVG_LandFire, aes(x = Community_Type, y = Average_Percent_Change, fill = Community_Type)) + 
+  geom_col() +
+  labs(title = "Average Percent Loss by Community Type",
+       x = "Community Type",
+       y = "Average Percent Loss") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_fill_manual(values = c("Pyrophobic" = "lightblue", "Pyrophytic" = "orange"))
+  
+ggsave("AVG_Percent_Loss_Barplot.png")
+
+
+```
+
+
+```{r analysis, tests}
+#subset for each community type and then convert the “Community_Type” column from a factor to character structure
+
+LandFire2 <- subset(LandFire, Community_Type=="Pyrophobic"|Community_Type=="Pyrophytic")
+
+LandFire2$Community_Type <- as.character(LandFire2$Community_Type)
+
+boxplot(Percent_Change~Community_Type, data=LandFire2, ylab="Average Percent Change", xlab="Community Type")
+
+#An assumption of t-tests is that the dependent variable be normally distributed. We can check this using: A QQ-plot - significant deviations from the line indicate non-normality may be present
+qqnorm(LandFire2$Percent_Change, pch = 1)
+qqline(LandFire2$Percent_Change, col = "red", lwd = 2)
+
+shapiro.test(x = LandFire2$Percent_Change)
+
+var.test(Percent_Change~Community_Type, data=LandFire2)
+
+#apply the t-test, using the “var.equal=FALSE” argument to apply the Welch correction.
+t.test(Percent_Change~Community_Type, data=LandFire2, var.equal=FALSE)
+
+#non-parametric test, the Wilcox or “Mann-Whitney” test, to compare the means of our groups
+wilcox.test(Percent_Change~Community_Type, data=LandFire2)
+
+```
+
+
+
+
+
+
+```{r citations}
+
+citation()
+version$version.string
+
+citation("ggplot2")
+citation ("dplyr")
+
+
+
+
+```
+
